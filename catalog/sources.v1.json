@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "sources": [
+    { "id": "bing", "kind": "engine", "tier": "free", "timeRange": true, "maxResults": 15, "endpointTemplate": "https://www.bing.com/search?q={query}&count={maxResults}&qft=interval%27{interval}" },
+    { "id": "ddg", "kind": "engine", "tier": "free", "timeRange": true, "maxResults": 15, "endpointTemplate": "https://html.duckduckgo.com/html/?q={query}&df={timeRange}" },
+    { "id": "ddg-lite", "kind": "engine", "tier": "free", "timeRange": true, "maxResults": 15, "endpointTemplate": "https://lite.duckduckgo.com/lite/?q={query}&df={timeRange}" },
+    { "id": "searxng", "kind": "engine", "tier": "free", "timeRange": true, "maxResults": 15, "endpointTemplate": "https://{instance}/search?q={query}&format=json&time_range={timeRange}" },
+    { "id": "mojeek", "kind": "engine", "tier": "free", "timeRange": false, "maxResults": 15, "endpointTemplate": "https://www.mojeek.com/search?q={query}" },
+    { "id": "firecrawl-keyless", "kind": "engine", "tier": "free", "timeRange": false, "maxResults": 10, "endpointTemplate": "https://r.jina.ai/https://firecrawl.co/v1/search (keyless quota endpoint)" },
+
+    { "id": "tavily", "kind": "engine", "tier": "keyed", "timeRange": true, "maxResults": 15, "endpointTemplate": "https://api.tavily.com/search", "credentialRef": "TAVILY_API_KEY" },
+    { "id": "serper", "kind": "engine", "tier": "keyed", "timeRange": true, "maxResults": 15, "endpointTemplate": "https://google.serper.dev/search", "credentialRef": "SERPER_API_KEY" },
+    { "id": "bocha", "kind": "engine", "tier": "keyed", "timeRange": true, "maxResults": 15, "endpointTemplate": "https://api.bochaai.com/v1/web-search", "credentialRef": "BOCHA_API_KEY" },
+    { "id": "exa", "kind": "engine", "tier": "keyed", "timeRange": false, "maxResults": 15, "endpointTemplate": "https://api.exa.ai/search", "credentialRef": "EXA_API_KEY" },
+    { "id": "firecrawl-key", "kind": "engine", "tier": "keyed", "timeRange": false, "maxResults": 10, "endpointTemplate": "https://api.firecrawl.dev/v1/search", "credentialRef": "FIRECRAWL_API_KEY" },
+
+    { "id": "github", "kind": "platform", "tier": "free", "timeRange": true, "maxResults": 15, "endpointTemplate": "https://api.github.com/search/repositories?q={query}" },
+    { "id": "hackernews", "kind": "platform", "tier": "free", "timeRange": true, "maxResults": 15, "endpointTemplate": "https://hn.algolia.com/api/v1/search?query={query}&numericFilters=created_at_i>{sinceI}" },
+    { "id": "reddit", "kind": "platform", "tier": "free", "timeRange": true, "maxResults": 15, "endpointTemplate": "https://www.reddit.com/search.json?q={query}&sort=new&t={timeRange}&limit={maxResults}" },
+    { "id": "stackoverflow", "kind": "platform", "tier": "free", "timeRange": true, "maxResults": 15, "endpointTemplate": "https://api.stackexchange.com/2.3/search/advanced?order=desc&sort=relevance&q={query}&pagesize={maxResults}" },
+    { "id": "wikipedia", "kind": "platform", "tier": "free", "timeRange": false, "maxResults": 10, "endpointTemplate": "https://{lang}.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch={query}&prop=extracts&format=json" },
+    { "id": "v2ex", "kind": "platform", "tier": "free", "timeRange": false, "maxResults": 15, "endpointTemplate": "https://www.v2ex.com/api/topics/search.json?q={query}" },
+    { "id": "npm", "kind": "platform", "tier": "free", "timeRange": false, "maxResults": 10, "endpointTemplate": "https://registry.npmjs.org/-/v1/search?text={query}&size={maxResults}" },
+    { "id": "huggingface", "kind": "platform", "tier": "free", "timeRange": true, "maxResults": 15, "endpointTemplate": "https://huggingface.co/api/models?search={query}&sort=lastModified&direction=-1&limit={maxResults}" },
+    { "id": "modelscope", "kind": "platform", "tier": "free", "timeRange": true, "maxResults": 15, "endpointTemplate": "https://www.modelscope.cn/api/v1/models?Query={query}&SortBy=GmtModified&PageSize={maxResults}" },
+    { "id": "zhihu", "kind": "platform", "tier": "free", "timeRange": false, "maxResults": 15, "endpointTemplate": "https://developer.zhihu.com (Open Platform search API)", "credentialRef": "ZHIHU_ACCESS_SECRET" },
+
+    { "id": "bilibili", "kind": "platform", "tier": "verify", "timeRange": false, "maxResults": 15, "endpointTemplate": "https://api.bilibili.com/x/web-interface/search/type?keyword={query}&search_type=video" },
+    { "id": "weibo", "kind": "platform", "tier": "verify", "timeRange": false, "maxResults": 15, "endpointTemplate": "https://s.weibo.com/weibo?q={query}" },
+
+    { "id": "x", "kind": "platform", "tier": "best-effort", "timeRange": false, "maxResults": 15, "endpointTemplate": "https://cdn.syndication.twimg.com/search/fetch?query={query} (best-effort HTML; never presented as guaranteed X coverage)" }
+  ]
+}

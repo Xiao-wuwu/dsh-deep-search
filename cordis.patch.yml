@@ -1,0 +1,13 @@
+# dsh-deep-search bundle patch —— 把本插件作为一行插入 dsh profile。
+#
+# 格式对齐 DSH 官方 bundle patch（模式取自 dsh-web-search-pro@0.2.1 / dsh-zhihu-search）：
+# 顶层是 loader patch 条目数组；`insert` 在 profile 根上追加插件行。
+#
+# name 必须是 loader 能从 profile 的 node_modules 解析到的模块 id，即本包自身的包名。
+#
+# 关于 config：**刻意不写任何密钥**。API Key / Access Secret 一律存 DSH 凭据存储，
+# 插件配置里只放“凭据引用名”（credentialRefs），这样 patch 可以安全截图分享。
+# 引用缺失 = 对应引擎/平台自动禁用，并在 doctor 中说明。
+- insert:
+    - id: deep-search
+      name: dsh-deep-search

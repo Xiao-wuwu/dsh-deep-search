@@ -1,0 +1,85 @@
+{
+  "name": "dsh-deep-search",
+  "version": "0.1.0",
+  "description": "Multi-round iterative search with source grading (A/B/C/D) and misinformation heuristics for DeepSeek Harness — 6 free engines + 14 platform-targeted retrievers, research state, verify_claims, injected SKILL protocol.",
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "assets",
+    "catalog",
+    "cordis.patch.yml",
+    "README.md",
+    "README.en.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": "^22.19 || >=24"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.4",
+    "@deepseek-ai/dsh-credentials": ">=0.2.0-rc.2 <0.2.1-0",
+    "@deepseek-ai/dsh-settings": ">=0.2.0-rc.2 <0.2.1-0",
+    "@deepseek-ai/dsh-tools": ">=0.2.0-rc.2 <0.2.1-0",
+    "@deepseek-ai/schemastery": "^3.18.2"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-credentials": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-settings": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-tools": {
+      "optional": true
+    },
+    "@deepseek-ai/schemastery": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "node-html-parser": "^9.0.4",
+    "undici": "^8.12.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsdown": "^0.22.2",
+    "typescript": "^5.6.0"
+  },
+  "dsh": {
+    "engines": {
+      "dsh": ">=0.2.0-rc.2"
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "plugin",
+    "dsh-plugin",
+    "deep-search",
+    "iterative-search",
+    "fact-check",
+    "search"
+  ],
+  "scripts": {
+    "test": "node --test --experimental-transform-types test/*.test.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  }
+}
