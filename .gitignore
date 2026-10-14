@@ -5,3 +5,6 @@ lib/
 coverage/
 tmp/
 .cache/
+
+*.tgz
+package.json.bak
