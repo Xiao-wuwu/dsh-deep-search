@@ -52,7 +52,8 @@
     "nist.gov",
     "arxiv.org",
     "huggingface.co",
-    "github.com"
+    "github.com",
+    "modelscope.cn"
   ],
   "_officialNote": "huggingface.co & github.com listed at A by org-verified rule only (model card org / org-owned release); generic community pages are demoted to C by trust.ts's more-specific rules.",
   "officialAccounts": [
@@ -78,7 +79,13 @@
     "百度文心一言",
     "腾讯混元",
     "豆包",
-    "字节跳动"
+    "字节跳动",
+    "qwen",
+    "deepseek-ai",
+    "openai",
+    "anthropics",
+    "AI-ModelScope",
+    "iic"
   ],
   "_accountNote": "Stored WITHOUT leading @; the matcher strips @ and lowercases before comparing. Covers X handles, Weibo/知乎 机构号, HF/ModelScope org slugs.",
 

@@ -156,18 +156,25 @@ export function parseHuggingface(text: string): PlatformHit[] {
 }
 
 export function parseModelscope(text: string): PlatformHit[] {
+  // verified live 2026-10-15: PUT /api/v1/models → { Code:200, Data:{ Models:[{Name,Path,Description,Downloads,LastUpdatedTime,…}] } }
   const j = obj(jsonOf(text));
   const env = obj(j?.Data) ?? obj(j?.data) ?? j ?? {};
-  const list = arr(env.Model ?? env.models ?? env.Items ?? env.items);
+  const list = arr(env.Models ?? env.models ?? env.Model ?? env.items);
   return list.map((raw) => {
     const it = obj(raw) ?? {};
-    const id = clean(it.Id ?? it.id ?? it.Name);
+    const name = clean(it.Name ?? it.name);
+    const orgName = clean(obj(it.Organization)?.Name);
+    const path = clean(it.Path ?? it.path ?? it.Namespace) || orgName;
+    const id = path && name ? `${path}/${name}` : name || path;
+    const dl = num(it.Downloads);
     return {
-      title: clean(it.Name ?? it.name) || id,
+      title: name || id || "(模型)",
       url: id ? `https://www.modelscope.cn/models/${id}` : "",
-      snippet: clean(it.Description ?? it.description),
-      ...(isoDate(it.LastModifiedTime ?? it.last_modified_time) !== undefined ? { date: isoDate(it.LastModifiedTime ?? it.last_modified_time) } : {}),
-      ...(num(it.Downloads) !== undefined ? { votes: num(it.Downloads) } : {}),
+      snippet: clean(it.Description ?? it.description).slice(0, 280),
+      ...(isoDate(it.LastUpdatedTime ?? it.last_updated_time ?? it.CreatedTime) !== undefined
+        ? { date: isoDate(it.LastUpdatedTime ?? it.last_updated_time ?? it.CreatedTime) } : {}),
+      ...(clean(it.CreatedBy ?? it.Creator) !== "" ? { author: clean(it.CreatedBy ?? it.Creator) } : {}),
+      ...(dl !== undefined ? { votes: dl } : {}),
     };
   }).filter((h) => h.url !== "");
 }

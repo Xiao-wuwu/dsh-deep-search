@@ -89,13 +89,22 @@ test("parseHuggingface: model cards with id/date", () => {
   assert.equal(hits[0]!.votes, 5000, "downloads as popularity signal");
 });
 
-test("parseModelscope: tolerant of Data|data envelope", () => {
-  const j = JSON.stringify({ Data: { Model: [
-    { Name: "Qwen4-Max", Id: "qwen/Qwen4-Max", Description: "旗舰模型", LastModifiedTime: "2026-10-10", Downloads: 100 },
+test("parseModelscope: real PUT shape {Data:{Models:[…]}}, URL=/models/<Path>/<Name>", () => {
+  const j = JSON.stringify({ Code: 200, Data: { Models: [
+    { Name: "Qwen4-Max", Path: "Qwen", Description: "旗舰模型", LastUpdatedTime: 1791994177, Downloads: 999, CreatedBy: "QwenTeam" },
   ] } });
   const hits = parseModelscope(j);
   assert.equal(hits.length, 1);
-  assert.match(hits[0]!.url, /modelscope\.cn\/models/);
+  assert.equal(hits[0]!.title, "Qwen4-Max");
+  assert.equal(hits[0]!.url, "https://www.modelscope.cn/models/Qwen/Qwen4-Max");
+  assert.equal(hits[0]!.votes, 999);
+});
+
+test("parseModelscope: legacy/alternate envelope still tolerated", () => {
+  const j = JSON.stringify({ data: { models: [{ Name: "X", Path: "o", Description: "d" }] } });
+  const hits = parseModelscope(j);
+  assert.equal(hits.length, 1);
+  assert.match(hits[0]!.url, /modelscope\.cn\/models\/o\/X/);
 });
 
 test("parseV2ex: topic list", () => {

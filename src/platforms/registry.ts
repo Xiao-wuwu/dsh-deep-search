@@ -98,9 +98,32 @@ const huggingface = simplePlatform("huggingface", (q, { n }) => ({
   url: `https://huggingface.co/api/models?search=${enc(q)}&sort=lastModified&direction=-1&limit=${n}`,
 }), parseHuggingface);
 
-const modelscope = simplePlatform("modelscope", (q, { n }) => ({
-  url: `https://www.modelscope.cn/api/v1/models?Query=${enc(q)}&SortBy=GmtModified&PageSize=${n}&PageNumber=1`,
-}), parseModelscope);
+// verified live 2026-10-15: ModelScope model search is a PUT (GET/POST → 404/401)
+const modelscope = (deps: EngineDeps): Platform => ({
+  id: "modelscope",
+  async search(query, o = {}) {
+    const n = clamp(o.maxResults, 20);
+    const key = `modelscope|${query}|${o.timeRange ?? ""}|${n}`;
+    const cached = deps.cache?.get(key) as PlatformHit[] | undefined;
+    if (cached) return cached;
+    if (deps.cooldown.touched("modelscope")) throw new QuotaError("modelscope", "modelscope is cooling");
+    if (deps.bucket && !deps.bucket.tryConsume()) throw new QuotaError("modelscope", "local rate limit for modelscope");
+    try {
+      const res = await deps.http.put("https://www.modelscope.cn/api/v1/models", {
+        target: "modelscope", seed: `modelscope${query}`,
+        // SortBy is strict-validated upstream ('oneof'); only GmtModified verified 200 live
+        body: JSON.stringify({ Name: query, PageSize: n, PageNumber: 1, SortBy: "GmtModified" }),
+        signal: o.signal,
+      });
+      const out = parseModelscope(res.body).slice(0, n);
+      deps.cache?.set(key, out);
+      return out;
+    } catch (err) {
+      if (err instanceof HttpError && err.isQuota) deps.cooldown.mark("modelscope", 15);
+      throw err;
+    }
+  },
+});
 
 const v2ex = simplePlatform("v2ex", (q, { n }) => ({
   url: `https://www.v2ex.com/api/topics/search.json?q=${enc(q)}&n=${n}`,

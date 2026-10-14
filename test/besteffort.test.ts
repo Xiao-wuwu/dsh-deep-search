@@ -52,7 +52,7 @@ test("parseWeiboHtml: passport/login wall → failed with note", () => {
   assert.match(r.note ?? "", /login wall/);
 });
 
-test("parseWeiboHtml: empty page → ok with 0 hits", () => {
+test("parseWeiboHtml: empty page → ok with 0 hits (adapter downgrades to unavailable)", () => {
   const r = parseWeiboHtml("<html><body>no cards</body></html>");
   assert.equal(r.status, "ok");
   assert.equal(r.hits.length, 0);

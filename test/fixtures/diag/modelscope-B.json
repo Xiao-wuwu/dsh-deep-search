@@ -1,0 +1,17 @@
+{
+ "url": "https://www.modelscope.cn/api/v1/dolphin/models?Query=Qwen&PageSize=5",
+ "status": 404,
+ "headers": {
+  "date": "Wed, 14 Oct 2026 16:09:37 GMT",
+  "content-type": "text/plain",
+  "content-length": "18",
+  "connection": "keep-alive",
+  "set-cookie": [
+   "acw_tc=276385c317919941772245977ea52b8b584aaf904643372308dd4014dd1993;path=/;HttpOnly;Max-Age=1800",
+   "csrf_session=MTc5MTk5NDE3N3xEWDhFQVFMX2dBQUJFQUVRQUFBeV80QUFBUVp6ZEhKcGJtY01DZ0FJWTNOeVpsTmhiSFFHYzNSeWFXNW5EQklBRUhwaFpYQm5hRzVFUkZWdFRHZFZVRWc9fMoVpneLmhiE__F1ga8oyGbgGrxOsQr_D6CMNoCiP8tD; Path=/; Expires=Fri, 13 Nov 2026 16:09:37 GMT; Max-Age=2592000",
+   "csrf_token=GjrZhKlb6fuoIpC5bDVRm-SIawQ%3D; Path=/; Max-Age=2592000"
+  ],
+  "strict-transport-security": "max-age=15724800; includeSubDomains"
+ },
+ "body": "404 page not found"
+}

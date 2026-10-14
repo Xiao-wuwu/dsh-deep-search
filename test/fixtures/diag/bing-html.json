@@ -1,0 +1,24 @@
+{
+ "url": "https://www.bing.com/search?q=Qwen%20model%20release&count=10",
+ "status": 302,
+ "headers": {
+  "cache-control": "private",
+  "content-length": "181",
+  "content-type": "text/html; charset=utf-8",
+  "location": "https://cn.bing.com/search?q=Qwen%20model%20release&count=10",
+  "set-cookie": [
+   "SNRHOP=TS=639275909806103213&I=1; domain=.bing.com; path=/; secure; SameSite=None",
+   "_EDGE_S=F=1&SID=2C03FE92D74065BB255AE960D6266472; path=/; httponly; domain=bing.com",
+   "_EDGE_V=1; path=/; httponly; expires=Mon, 08-Nov-2027 16:09:35 GMT; domain=bing.com",
+   "MUID=3F2E76392B0569932C5661CB2A6368D7; samesite=none; path=/; secure; expires=Mon, 08-Nov-2027 16:09:35 GMT; domain=bing.com",
+   "MUIDB=3F2E76392B0569932C5661CB2A6368D7; path=/; httponly; expires=Mon, 08-Nov-2027 16:09:35 GMT"
+  ],
+  "x-eventid": "6acfa93f82cf4916926c581320d51646",
+  "useragentreductionoptout": "A7kgTC5xdZ2WIVGZEfb1hUoNuvjzOZX3VIV/BA6C18kQOOF50Q0D3oWoAm49k3BQImkujKILc7JmPysWk3CSjwUAAACMeyJvcmlnaW4iOiJodHRwczovL3d3dy5iaW5nLmNvbTo0NDMiLCJmZWF0dXJlIjoiU2VuZEZ1bGxVc2VyQWdlbnRBZnRlclJlZHVjdGlvbiIsImV4cGlyeSI6MTY4NDg4NjM5OSwiaXNTdWJkb21haW4iOnRydWUsImlzVGhpcmRQYXJ0eSI6dHJ1ZX0=",
+  "x-cache": "CONFIG_NOCACHE",
+  "accept-ch": "Sec-CH-UA-Arch, Sec-CH-UA-Bitness, Sec-CH-UA-Full-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version",
+  "x-msedge-ref": "Ref A: 56AF23DD3ABE4858AA6816E0851E770B Ref B: BJ1EDGE1209 Ref C: 2026-10-14T16:09:35Z",
+  "date": "Wed, 14 Oct 2026 16:09:34 GMT"
+ },
+ "body": "<html><head><title>Object moved</title></head><body>\r\n<h2>Object moved to <a href=\"https://cn.bing.com/search?q=Qwen%20model%20release&amp;count=10\">here</a>.</h2>\r\n</body></html>\r\n"
+}

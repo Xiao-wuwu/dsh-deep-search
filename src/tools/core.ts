@@ -205,7 +205,10 @@ export async function runDeepSearch(args: DeepSearchArgs, ctx: ToolCtx): Promise
 
     await pool(specs, ctx.cfg.limits.concurrency, async (spec) => {
       const maxResults = spec.maxResults ?? args.maxResultsPerQuery ?? 8;
-      const opts = { timeRange: spec.timeRange, maxResults, signal: args.signal };
+      // hard per-query deadline: one slow channel never starves the round
+      const deadline = AbortSignal.timeout(ctx.cfg.limits.queryTimeoutMs);
+      const signal = args.signal ? AbortSignal.any([args.signal, deadline]) : deadline;
+      const opts = { timeRange: spec.timeRange, maxResults, signal };
 
       if (spec.target) {
         const eng = ctx.engines.find((e) => e.id === spec.target);

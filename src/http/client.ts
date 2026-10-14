@@ -1,5 +1,6 @@
 /** undici HTTP wrapper: per-target proxy, UA rotation, timeouts, 1 retry, gzip, typed errors. */
 import { request, ProxyAgent, type Dispatcher } from "undici";
+import * as zlib from "node:zlib";
 import { pickUa } from "./ua.ts";
 
 export class HttpError extends Error {
@@ -19,7 +20,9 @@ export class HttpError extends Error {
   }
 
   get isRetryable(): boolean {
-    return this.status >= 500 || this.status === 408 || this.code === "network" || this.code === "timeout";
+    // timeouts/network stalls are NEVER retried: retry doubles the wall-clock tail
+    // and a timed-out upstream rarely recovers within one backoff. Retry 5xx only.
+    return this.status >= 500 || this.status === 408;
   }
 }
 
@@ -48,12 +51,27 @@ const DEFAULT_TIMEOUT = 15_000;
 const RETRY_BACKOFF_MS = 500;
 
 interface CallSpec {
-  method: "GET" | "POST";
+  method: "GET" | "POST" | "PUT";
   headers: Record<string, string>;
   body?: string;
 }
 
-async function once(url: string, spec: CallSpec, timeoutMs: number, target: string, opts: HttpOpts, dispatcher?: Dispatcher): Promise<HttpResult> {
+/** undici's request() returns the raw compressed bytes; decode per content-encoding. */
+function decodeBody(buf: Uint8Array, encoding?: string): string {
+  const raw = Buffer.from(buf);
+  try {
+    const enc = (encoding ?? "").toLowerCase();
+    if (enc.includes("br")) return zlib.brotliDecompressSync(raw).toString("utf8");
+    if (enc.includes("gzip")) return zlib.gunzipSync(raw).toString("utf8");
+    if (enc.includes("deflate")) {
+      try { return zlib.inflateSync(raw).toString("utf8"); }
+      catch { return zlib.inflateRawSync(raw).toString("utf8"); }
+    }
+  } catch { /* fall through to raw — a wrong-charset body is better read than crashed */ }
+  return raw.toString("utf8");
+}
+
+async function once(url: string, spec: CallSpec, timeoutMs: number, target: string, opts: HttpOpts, dispatcher?: Dispatcher, redirectsLeft = 3): Promise<HttpResult> {
   const started = Date.now();
   const signal = opts.signal
     ? AbortSignal.any([opts.signal, AbortSignal.timeout(timeoutMs)])
@@ -68,7 +86,18 @@ async function once(url: string, spec: CallSpec, timeoutMs: number, target: stri
       bodyTimeout: timeoutMs,
       ...(dispatcher ? { dispatcher } : {}),
     });
-    const text = await res.body.text().catch(() => "");
+    const text = decodeBody(new Uint8Array(await res.body.arrayBuffer()),
+      Array.isArray(res.headers["content-encoding"]) ? res.headers["content-encoding"][0] : res.headers["content-encoding"]);
+    // undici's request() does NOT follow 3xx; hop manually (cn.bing.com redirect, www hops, …)
+    if (res.statusCode >= 300 && res.statusCode < 400 && redirectsLeft > 0) {
+      const loc = Array.isArray(res.headers.location) ? res.headers.location[0] : res.headers.location;
+      if (loc) {
+        const next = new URL(loc, url).toString();
+        const ms = Date.now() - started;
+        const followed = await once(next, { ...spec, method: res.statusCode === 307 || res.statusCode === 308 ? spec.method : "GET", body: res.statusCode === 307 || res.statusCode === 308 ? spec.body : undefined }, timeoutMs, target, opts, dispatcher, redirectsLeft - 1);
+        return { ...followed, ms: ms + followed.ms };
+      }
+    }
     const ms = Date.now() - started;
     if (res.statusCode >= 400) {
       const quota =
@@ -93,6 +122,7 @@ async function once(url: string, spec: CallSpec, timeoutMs: number, target: stri
 export interface HttpClient {
   get(url: string, opts: HttpOpts): Promise<HttpResult>;
   post(url: string, opts: HttpPostOpts): Promise<HttpResult>;
+  put(url: string, opts: HttpPostOpts): Promise<HttpResult>;
 }
 
 export function createHttpClient(
@@ -144,6 +174,13 @@ export function createHttpClient(
       return runWithRetry(
         url,
         { method: "POST", headers: { ...baseHeaders(opts), "content-type": opts.contentType ?? "application/json" }, body: opts.body },
+        opts,
+      );
+    },
+    async put(url, opts) {
+      return runWithRetry(
+        url,
+        { method: "PUT", headers: { ...baseHeaders(opts), "content-type": opts.contentType ?? "application/json" }, body: opts.body },
         opts,
       );
     },

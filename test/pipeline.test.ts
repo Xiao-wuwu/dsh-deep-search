@@ -82,6 +82,19 @@ test("gradeTrust: A official domain, B official account author, C community, D u
   assert.equal(gradeTrust(hit({ url: "https://random-blog.test/post", target: "bing" }), trust), "D");
 });
 
+// Regression guard (found by real-network smoke 2026-10-15): generic hosts score A
+// ONLY when the URL owner is a verified official org — personal spaces are community C.
+test("gradeTrust: owner-verified A vs personal-space C on generic hosts", () => {
+  // official orgs (present in trust.v1.json officialAccounts)
+  assert.equal(gradeTrust(hit({ url: "https://github.com/QwenLM/Qwen3-VL", target: "github" }), trust), "A");
+  assert.equal(gradeTrust(hit({ url: "https://huggingface.co/deepseek-ai/DeepSeek-V3", target: "huggingface" }), trust), "A");
+  assert.equal(gradeTrust(hit({ url: "https://www.modelscope.cn/models/Qwen/Qwen4-Max", target: "modelscope" }), trust), "A");
+  // personal/fork spaces must NOT be A
+  assert.equal(gradeTrust(hit({ url: "https://github.com/someuser/wuying-qwen-office", target: "github" }), trust), "C");
+  assert.equal(gradeTrust(hit({ url: "https://www.modelscope.cn/models/someuser/Qwen-LoRA-finetune", target: "modelscope" }), trust), "C");
+  assert.equal(gradeTrust(hit({ url: "https://huggingface.co/randomuser/my-gguf", target: "huggingface" }), trust), "C");
+});
+
 test("deriveFlags: clickbait/satire/content_farm/single_source/low_trust_only", () => {
   const click = hit({ url: "https://blog.test/x", title: "震惊！某厂炸裂发布", target: "bing" });
   click.trustRank = gradeTrust(click, trust);

@@ -1,7 +1,6 @@
 /** Trust grading (A/B/C/D) + misinformation flags from catalog/trust.v1.json. Pure. */
 import type { SourceResult, TrustRank, TrustSpec } from "../types.ts";
 
-const OFFICIAL_PAGE_PATTERNS = /\/(blog|news|release|model|models|about|research|changelog)\b|^https:\/\/huggingface\.co\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+/i;
 const COMMUNITY_URL_PATTERNS = /(reddit\.com|news\.ycombinator\.com|v2ex\.com|zhihu\.com|weibo\.com|bilibili\.com|x\.com|twitter\.com|juejin\.cn|csdn\.net|linux\.do)/i;
 const TRUST_ORDER = ["D", "C", "B", "A"] as const;
 
@@ -13,29 +12,45 @@ function matchSuffix(h: string, patterns: string[]): boolean {
   return patterns.some((p) => p.startsWith("*") ? h.endsWith(p.slice(1)) : h === p || h.endsWith(`.${p}`));
 }
 
+const GENERIC_HOSTS = new Set(["github.com", "huggingface.co", "modelscope.cn"]);
+
+/** Extract the owner slug: github.com/<owner>/<repo> · huggingface.co/<org>/<model>
+ *  · modelscope.cn/models/<owner>/<name>. Lowercased for account matching. */
+function ownerOf(url: string): string {
+  try {
+    const u = new URL(url);
+    const segs = u.pathname.split("/").filter(Boolean);
+    if (u.hostname === "www.modelscope.cn" || u.hostname === "modelscope.cn") {
+      const i = segs.indexOf("models");
+      if (i >= 0 && segs.length > i + 1) return segs[i + 1]!.toLowerCase();
+      return (segs[0] ?? "").toLowerCase();
+    }
+    return (segs[0] ?? "").toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
 /** The single source of truth for a result's A/B/C/D rank (flags do NOT downgrade it). */
 export function gradeTrust(hit: SourceResult, trust: TrustSpec): TrustRank {
   const h = host(hit.url);
   const author = (hit.author ?? "").replace(/^@/, "").toLowerCase();
   const officialAccounts = trust.officialAccounts.map((a) => a.replace(/^@/, "").toLowerCase());
 
-  // A: official domain; for generic hosts (github/hf) only on official-page shapes
+  // A: official domain — for generic org-hosts (github/hf/modelscope) ONLY when the
+  // URL's owner slug is a verified official organization; personal spaces = community.
   if (matchSuffix(h, trust.officialDomainPatterns)) {
-    const generic = h === "github.com" || h === "huggingface.co" || h === "modelscope.cn";
-    if (!generic || OFFICIAL_PAGE_PATTERNS.test(hit.url) || officialAccounts.includes(h.split("/")[0]!.toLowerCase())) {
+    if (GENERIC_HOSTS.has(h)) {
+      const owner = ownerOf(hit.url);
+      if (owner !== "" && officialAccounts.includes(owner)) return "A";
+    } else {
       return "A";
     }
   }
-  // A: platform-targeted official evidence (hf org model card, github org release)
-  if ((hit.target === "huggingface" || hit.target === "modelscope" || hit.target === "github") && OFFICIAL_PAGE_PATTERNS.test(hit.url)) return "A";
-  // B: author is a known official account (on social/community URLs)
-  if (author !== "" && officialAccounts.includes(author) && COMMUNITY_URL_PATTERNS.test(hit.url)) return "B";
-  // B: platform-native community with verified-ish author on community host
-  if (COMMUNITY_URL_PATTERNS.test(hit.url) && author !== "" && officialAccounts.includes(author)) return "B";
-  // C: community hosts, or known C-target platforms
-  if (COMMUNITY_URL_PATTERNS.test(hit.url) || ["reddit", "hackernews", "v2ex", "zhihu", "weibo", "bilibili", "x"].includes(hit.target)) return "C";
-  // A again for official domain not caught by generic gate
-  if (matchSuffix(h, trust.officialDomainPatterns)) return "A";
+  // B: author is a known official account on a social/community context
+  if (author !== "" && officialAccounts.includes(author) && (COMMUNITY_URL_PATTERNS.test(hit.url) || h === "x.com" || h === "twitter.com")) return "B";
+  // C: community hosts/targets, and generic org-hosts that failed owner verification
+  if (COMMUNITY_URL_PATTERNS.test(hit.url) || GENERIC_HOSTS.has(h) || ["reddit", "hackernews", "v2ex", "zhihu", "weibo", "bilibili", "x"].includes(hit.target)) return "C";
   return "D";
 }
 

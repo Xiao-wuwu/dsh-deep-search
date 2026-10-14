@@ -23,7 +23,13 @@ async function guarded(deps: EngineDeps, id: string, fn: () => Promise<TierResul
   if (deps.cooldown.touched(id)) return { status: "unavailable", hits: [], note: `${id} is cooling` };
   if (deps.bucket && !deps.bucket.tryConsume()) return { status: "unavailable", hits: [], note: `local rate limit for ${id}` };
   try {
-    return await fn();
+    const r = await fn();
+    // honesty: an "ok but empty" best-effort result is NOT coverage — report it visibly.
+    // Silent anti-bot walls (weibo visitor system) return 200 with no cards.
+    if (r.status === "ok" && r.hits.length === 0 && !r.note) {
+      return { status: "unavailable", hits: [], note: `${id} returned 0 results (silent anti-bot wall or genuinely empty) — retry via a general engine with site:` };
+    }
+    return r;
   } catch (err) {
     if (err instanceof HttpError && err.isQuota) deps.cooldown.mark(id, 15);
     return { status: "failed", hits: [], note: String((err as Error)?.message ?? err).slice(0, 160) };
