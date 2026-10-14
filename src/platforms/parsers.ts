@@ -1,6 +1,14 @@
 /** Platform JSON parsers — pure, fixture-testable. Honesty discipline: upstream-absent
  *  fields are OMITTED (never 0/""); an explicit 0/"" from upstream is kept as-is. */
 
+export type TierStatus = "ok" | "degraded" | "unavailable" | "failed";
+
+export interface TierResult {
+  status: TierStatus;
+  hits: PlatformHit[];
+  note?: string;
+}
+
 export interface PlatformHit {
   title: string;
   url: string;
@@ -177,6 +185,82 @@ export function parseV2ex(text: string): PlatformHit[] {
       ...(replies !== undefined ? { comments: replies } : {}),
     };
   }).filter((h) => h.url !== "");
+}
+
+/* ---------- bilibili / weibo / x: best-effort tiers. Status tells the truth. ---------- */
+
+export function parseBilibili(text: string): TierResult {
+  const j = obj(jsonOf(text));
+  if (!j) return { status: "failed", hits: [], note: "malformed bilibili JSON" };
+  const code = num(j.code) ?? -1;
+  if (code !== 0) return { status: "failed", hits: [], note: `bilibili risk-control code=${code}` };
+  const data = obj(j.data);
+  const list = arr(data?.result ?? data?.items ?? (Array.isArray(j.data) ? j.data : undefined));
+  const hits = list.map((raw) => {
+    const v = obj(raw) ?? {};
+    const bvid = clean(v.bvid);
+    const votes = num(v.play);
+    const cm = num(v.danmaku);
+    return {
+      title: clean(v.title ?? v.name).replace(/<em class="keyword">|<\/em>/g, ""),
+      url: bvid ? `https://www.bilibili.com/video/${bvid}` : "",
+      snippet: clean(v.description ?? v.desc).slice(0, 280),
+      ...(isoDate(v.pubdate) !== undefined ? { date: isoDate(v.pubdate) } : {}),
+      ...(clean(v.author ?? v.up_name) !== "" ? { author: clean(v.author ?? v.up_name) } : {}),
+      ...(votes !== undefined ? { votes } : {}),
+      ...(cm !== undefined ? { comments: cm } : {}),
+    };
+  }).filter((h) => h.url !== "");
+  return { status: "ok", hits };
+}
+
+export function parseWeiboHtml(html: string): TierResult {
+  if (/Passport Weibo|weibo\.com\/login|visitor system/i.test(html)) {
+    return { status: "failed", hits: [], note: "weibo login wall / visitor system" };
+  }
+  const hits: PlatformHit[] = [];
+  const currentYear = new Date().getFullYear();
+  // each card = text between one `card-wrap` marker and the next
+  const parts = html.split(/(?=<div class="card-wrap")/).filter((p) => p.includes('class="card-wrap"'));
+  for (const card of parts) {
+    const txt = /<p class="txt">([\s\S]*?)<\/p>/.exec(card)?.[1];
+    if (!txt) continue;
+    const snippet = txt.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+    const author = /作者：<a[^>]*>([^<]+)<\/a>/.exec(card)?.[1];
+    const dateMatch = /(\d{1,2})月(\d{1,2})日/.exec(card);
+    const detail = /href="\/(\d+)\/(\d+)"/.exec(card) ?? /action_url="[^"]*weibo\.com\/(\d+)\/(\d+)/.exec(card);
+    hits.push({
+      title: (snippet.split(/[，。！？,!?]/)[0] ?? "").slice(0, 50),
+      url: detail ? `https://weibo.com/${detail[1]}/${detail[2]}` : `https://s.weibo.com/weibo?q=${encodeURIComponent(snippet.slice(0, 30))}`,
+      snippet: snippet.slice(0, 280),
+      ...(dateMatch ? { date: `${currentYear}-${dateMatch[1]!.padStart(2, "0")}-${dateMatch[2]!.padStart(2, "0")}` } : {}),
+      ...(author ? { author } : {}),
+    });
+  }
+  return { status: "ok", hits };
+}
+
+export function parseXSyndication(text: string): TierResult {
+  const j = obj(jsonOf(text));
+  const instructions = arr(obj(j?.timeline)?.instructions);
+  const entries = instructions.flatMap((i) => arr(obj(i)?.entries));
+  const hits = entries.map((raw) => {
+    const e = obj(raw) ?? {};
+    const t = obj(obj(obj(e.content)?.itemContent)?.tweet) ?? {};
+    const user = clean(t.userName);
+    const id = clean(obj(t.conversation)?.id);
+    const likes = num(t.likes);
+    return {
+      title: (clean(t.text).split(/[\n。]/)[0] ?? "").slice(0, 50),
+      url: user && id ? `https://x.com/${user}/status/${id}` : "",
+      snippet: clean(t.text).slice(0, 280),
+      ...(isoDate(t.createdAt) !== undefined ? { date: isoDate(t.createdAt) } : {}),
+      ...(user !== "" ? { author: user } : {}),
+      ...(likes !== undefined ? { votes: likes } : {}),
+    };
+  }).filter((h) => h.url !== "");
+  if (hits.length === 0) return { status: "unavailable", hits: [], note: "empty syndication timeline (no X access)" };
+  return { status: "ok", hits };
 }
 
 export function parseZhihu(text: string): PlatformHit[] {
