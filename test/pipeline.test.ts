@@ -155,3 +155,9 @@ test("buildHint: coverage + suggest (expand when thin, shrink when noisy)", () =
   const noisy = buildHint({ ok: ["bing"], failed: [], newCount: 40 });
   assert.ok(noisy.suggest.some((s) => /引号|site:|精确/.test(s)));
 });
+
+test('gradeTrust: UGC pages on official domains are C, not A (live-audit regression 2026-10-15)', () => {
+  assert.equal(gradeTrust(hit({ url: 'https://baike.baidu.com/item/Qwen4/68722877', title: 'Qwen4_百度百科', target: 'bing' }), trust), 'C');
+  assert.equal(gradeTrust(hit({ url: 'https://zhuanlan.zhihu.com/p/2087509761864504519', title: '知乎专栏文', target: 'bing' }), trust), 'C');
+  assert.equal(gradeTrust(hit({ url: 'https://qwen.ai/blog/qwen4', title: 'Qwen4 released', target: 'bing' }), trust), 'A', 'genuine official domain unaffected');
+});

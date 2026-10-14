@@ -93,6 +93,8 @@ export interface SourceSpec {
 /** One catalog/trust.v1.json row set (spec §5 seeds, user-overridable). */
 export interface TrustSpec {
   officialDomainPatterns: string[];
+  /** Hosts that live ON official domains but host UGC (baike/zhihu-column…) — never A/B. */
+  officialDenyHosts?: string[];
   officialAccounts: string[];
   communityDomainPatterns: string[];
   contentFarmPatterns: string[];

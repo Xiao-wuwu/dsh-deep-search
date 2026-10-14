@@ -1,7 +1,6 @@
 {
   "version": 1,
   "_comment": "Spec §5 seeds. Patterns are matched as hostname suffixes (case-insensitive), except entries containing '/' or '*', which are matched as URL substring prefixes. User-extendable via config.trust.extra* .",
-
   "officialDomainPatterns": [
     "openai.com",
     "anthropic.com",
@@ -88,7 +87,6 @@
     "iic"
   ],
   "_accountNote": "Stored WITHOUT leading @; the matcher strips @ and lowercases before comparing. Covers X handles, Weibo/知乎 机构号, HF/ModelScope org slugs.",
-
   "communityDomainPatterns": [
     "reddit.com",
     "news.ycombinator.com",
@@ -123,7 +121,6 @@
     "huggingface.co"
   ],
   "_communityNote": "huggingface.co / modelscope.cn / github.com appear here for generic community pages; org-owned model cards & official repos are promoted to A by the matcher's more-specific rules (org page, release, docs).",
-
   "contentFarmPatterns": [
     "ehow.com",
     "answerbag.com",
@@ -150,7 +147,6 @@
     "xueqiu.com"
   ],
   "_farmNote": "Only low-editorial aggregate/spun-content hosts. Major media (36kr, jiqizhixin, qbitai, infoq) are deliberately NOT farmed — they grade D (media/interpretation), which is fairer than calling them farms.",
-
   "satireDomains": [
     "theonion.com",
     "clickhole.com",
@@ -161,7 +157,6 @@
     "satanictribune.com",
     "newyorker.com/humor"
   ],
-
   "clickbaitPatterns": {
     "zh": [
       "震惊",
@@ -190,5 +185,12 @@
       "INSANE",
       "99% OF PEOPLE"
     ]
-  }
+  },
+  "officialDenyHosts": [
+    "baike.baidu.com",
+    "zhuanlan.zhihu.com",
+    "jingyan.baidu.com",
+    "wenku.baidu.com",
+    "tieba.baidu.com"
+  ]
 }

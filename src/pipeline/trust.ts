@@ -34,6 +34,9 @@ function ownerOf(url: string): string {
 /** The single source of truth for a result's A/B/C/D rank (flags do NOT downgrade it). */
 export function gradeTrust(hit: SourceResult, trust: TrustSpec): TrustRank {
   const h = host(hit.url);
+  // UGC pages living ON official domains (baike.baidu.com, zhuanlan.zhihu.com …) must not
+  // inherit the domain's grade — found by a live grading audit (2026-10-15, deep_search run).
+  if ((trust.officialDenyHosts ?? []).some((d) => h === d || h.endsWith(`.${d}`))) return "C";
   const author = (hit.author ?? "").replace(/^@/, "").toLowerCase();
   const officialAccounts = trust.officialAccounts.map((a) => a.replace(/^@/, "").toLowerCase());
 
