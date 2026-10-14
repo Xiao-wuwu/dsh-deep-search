@@ -1,2 +1,6 @@
+# GitHub-native sponsor button (heart on repo page; forks inherit it).
+# Add more channels any time, e.g.:
+#   patreon: yourname
+#   buy_me_a_coffee: yourname
+#   custom: [https://ifdian.net/a/yourname]
 github: [Xiao-wuwu]
-# ??????(??): patreon: / buy_me_a_coffee: / custom: [???????]
