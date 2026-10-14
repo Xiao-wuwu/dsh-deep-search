@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { parseBing, parseDdg, parseMojeek } from "../src/engines/html.ts";
+import { parseBing, parseDdg, parseMojeek, parseRss } from "../src/engines/html.ts";
 import { parseSearxngJson, parseApiJson } from "../src/engines/api.ts";
 import { buildEngines } from "../src/engines/registry.ts";
 import { Cooldown } from "../src/http/limits.ts";
@@ -10,6 +10,22 @@ import { createHttpClient } from "../src/http/client.ts";
 const b64u = (s: string) => Buffer.from(s).toString("base64url");
 
 /* ---------------- HTML engine parsers (fixture replay) ---------------- */
+
+test("parseRss: real cn.bing format=rss shape (title/link/description/pubDate)", () => {
+  // structure captured live 2026-10-15 (after following 302 → cn.bing.com)
+  const xml = `<rss><channel>
+    <item><title>Qwen4官宣，架构却先开源了 - 知乎</title><link>https://zhuanlan.zhihu.com/p/2087509761864504519</link><description><![CDATA[9月22日 云栖大会，Qwen团队第一次把 Qwen4 的完整阵容端上台面。]]></description><pubDate>Wed, 08 Oct 2026 12:00:00 GMT</pubDate></item>
+    <item><title>Plain</title><link>https://qwen.ai/home</link><description>second item body</description></item>
+    <item><title>bad</title><link>/relative-only</link><description>dropped, no absolute url</description></item>
+  </channel></rss>`;
+  const hits = parseRss(xml);
+  assert.equal(hits.length, 2, "relative-link item dropped");
+  assert.equal(hits[0]!.title, "Qwen4官宣，架构却先开源了 - 知乎");
+  assert.equal(hits[0]!.url, "https://zhuanlan.zhihu.com/p/2087509761864504519");
+  assert.match(hits[0]!.snippet, /云栖大会/);
+  assert.equal(hits[0]!.date, "2026-10-08", "RFC822 pubDate → ISO");
+  assert.equal("date" in hits[1]!, false, "absent pubDate stays absent");
+});
 
 test("parseBing: extracts title/url/snippet and decodes ck/a redirects", () => {
   const target = "https://qwen.ai/blog/qwen4";

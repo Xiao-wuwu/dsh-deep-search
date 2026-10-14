@@ -55,6 +55,45 @@ function decodeDdgTarget(href: string): string {
   return href;
 }
 
+/** Parse RSS/Atom XML → hits. bing's `format=rss` endpoint (learned from
+ *  dsh-web-search-pro: HTML scraping of Bing is fragile to 302+gzip+bot-checks;
+ *  the RSS endpoint is anonymous, stable, and already carries date/description). */
+export function parseRss(xml: string, count = 20): EngineHit[] {
+  const hits: EngineHit[] = [];
+  const itemRe = /<(item|entry)[^>]*>([\s\S]*?)<\/(?:item|entry)>/gi;
+  const strip = (s: string): string => s.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&#x?[\da-f]+;?/gi, " ").replace(/\s+/g, " ").trim();
+  const grab = (tag: string, block: string): string | undefined => {
+    const t = new RegExp("<" + tag + "(?:[^>]*)>([\\s\\S]*?)</" + tag + ">", "i").exec(block);
+    return t ? strip(t[1]!) : undefined;
+  };
+  let m: RegExpExecArray | null;
+  while ((m = itemRe.exec(xml)) !== null) {
+    const block = m[2] ?? "";
+    const linkMatch = /<link[^>]*href="([^"]+)"/i.exec(block) ?? /<link[^>]*>([\s\S]*?)<\/link>/i.exec(block) ?? /<id[^>]*>([\s\S]*?)<\/id>/i.exec(block);
+    const url = normalizeUrl(linkMatch ? strip(linkMatch[1] ?? linkMatch[2] ?? "") : "");
+    if (!url) continue;
+    const title = grab("title", block);
+    const snippet = grab("description", block) ?? grab("summary", block) ?? grab("content", block);
+    const pub = grab("pubDate", block) ?? grab("published", block) ?? grab("updated", block);
+    const date = pub ? isoDateFromRss(pub) : undefined;
+    hits.push({
+      title: title && title.length > 1 ? title : "(无标题)",
+      url,
+      snippet: snippet ? snippet.slice(0, 280) : "",
+      ...(date ? { date } : {}),
+    });
+    if (hits.length >= count) break;
+  }
+  return hits;
+}
+
+/** "Wed, 09 Oct 2026 …" / ISO → YYYY-MM-DD; unparseable → undefined (never fabricate). */
+function isoDateFromRss(raw: string): string | undefined {
+  const t = Date.parse(raw);
+  if (Number.isNaN(t)) return undefined;
+  return new Date(t).toISOString().slice(0, 10);
+}
+
 export function parseBing(html: string): EngineHit[] {
   const root = parse(html);
   const hits: EngineHit[] = [];

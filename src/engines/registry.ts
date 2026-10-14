@@ -3,7 +3,7 @@
  *  already-tested parsers in html.ts/api.ts; keeping them here is one focused, testable file. */
 import { HttpError } from "../http/client.ts";
 import { QuotaError, type Engine, type EngineConfig, type EngineDeps, type EngineHit } from "./types.ts";
-import { parseBing, parseDdg, parseMojeek } from "./html.ts";
+import { parseRss, parseDdg, parseMojeek } from "./html.ts";
 import { parseSearxngJson, parseApiJson } from "./api.ts";
 
 type Factory = (deps: EngineDeps, cfg: EngineConfig) => Engine;
@@ -25,7 +25,6 @@ const clamp = (n: number | undefined, max: number): number =>
 
 /* ---------- time-range maps (best-effort per engine; verified in Task 12 smoke) ---------- */
 const DDG_T: Record<string, string> = { day: "d", week: "w", month: "m", year: "y" };
-const BING_HOURS: Record<string, string> = { day: "24", week: "168", month: "720", year: "8760" };
 const SEARXNG_T: Record<string, string> = { day: "day", week: "month", month: "month", year: "year" };
 const SERPER_T: Record<string, string> = { day: "qdr:d", week: "qdr:w", month: "qdr:m", year: "qdr:y" };
 const TAVILY_DAYS: Record<string, number> = { day: 1, week: 7, month: 30, year: 365 };
@@ -59,11 +58,12 @@ function htmlEngine(id: string, buildUrl: (q: string, o: { timeRange?: string; n
 }
 
 const bing = htmlEngine("bing", (q, { timeRange, n }) => {
-  let url = `https://www.bing.com/search?q=${enc(q)}&count=${n}&form=QBLH`;
-  const h = timeRange && BING_HOURS[timeRange];
-  if (h) url += `&qft=interval%27${h}%27`; // best-effort freshness param
-  return url;
-}, parseBing);
+  // learned from dsh-web-search-pro's built-in engine: the RSS endpoint is anonymous
+  // and stable (HTML scraping fights 302→cn.bing + gzip + bot checks). `format=rss`
+  // supports count; freshness only via query operators, so we do not fake timeRange here.
+  void timeRange;
+  return `https://www.bing.com/search?q=${enc(q)}&format=rss&count=${Math.min(n, 20)}`;
+}, parseRss);
 
 const ddgHtml = htmlEngine("ddg", (q, { timeRange, n }) => {
   let url = `https://html.duckduckgo.com/html/?q=${enc(q)}&kl=wt-wt`;

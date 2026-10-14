@@ -94,9 +94,39 @@ const npm = simplePlatform("npm", (q, { n }) => ({
   url: `https://registry.npmjs.org/-/v1/search?text=${enc(q)}&size=${n}`,
 }), parseNpm);
 
-const huggingface = simplePlatform("huggingface", (q, { n }) => ({
-  url: `https://huggingface.co/api/models?search=${enc(q)}&sort=lastModified&direction=-1&limit=${n}`,
-}), parseHuggingface);
+// Network reality on CN mainland without proxy (verified 2026-10-15): huggingface.co
+// TIMES OUT, hf-mirror.com returns 200 with the identical /api/models payload.
+// Mirror first, official as fallback; only connect-level failures hop the mirror.
+const HF_ENDPOINTS = ["https://hf-mirror.com/api/models", "https://huggingface.co/api/models"];
+
+const huggingface = (deps: EngineDeps): Platform => ({
+  id: "huggingface",
+  async search(query, o = {}) {
+    const n = clamp(o.maxResults, 20);
+    const key = `huggingface|${query}|${o.timeRange ?? ""}|${n}`;
+    const cached = deps.cache?.get(key) as PlatformHit[] | undefined;
+    if (cached) return cached;
+    if (deps.cooldown.touched("huggingface")) throw new QuotaError("huggingface", "huggingface is cooling");
+    if (deps.bucket && !deps.bucket.tryConsume()) throw new QuotaError("huggingface", "local rate limit for huggingface");
+    let lastErr: unknown;
+    for (let i = 0; i < HF_ENDPOINTS.length; i++) {
+      const url = `${HF_ENDPOINTS[i]}?search=${enc(query)}&sort=lastModified&direction=-1&limit=${n}`;
+      try {
+        const res = await deps.http.get(url, { target: "huggingface", seed: `hf${query}`, signal: o.signal });
+        const out = parseHuggingface(res.body).slice(0, n);
+        deps.cache?.set(key, out);
+        return out;
+      } catch (err) {
+        if (err instanceof HttpError && err.isQuota) { deps.cooldown.mark("huggingface", 15); throw err; }
+        // hop the mirror only on connect/timeout (a path/HTTP error means the API itself answered)
+        const connectLevel = err instanceof HttpError && (err.code === "timeout" || err.code === "network");
+        if (!connectLevel && err instanceof HttpError) throw err;
+        lastErr = err;
+      }
+    }
+    throw lastErr instanceof Error ? lastErr : new Error("huggingface: all endpoints unreachable");
+  },
+});
 
 // verified live 2026-10-15: ModelScope model search is a PUT (GET/POST → 404/401)
 const modelscope = (deps: EngineDeps): Platform => ({
