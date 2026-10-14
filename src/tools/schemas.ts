@@ -75,6 +75,7 @@ export const deepSearchOutput: ValueSchemaSpec = {
           memberUrls: { type: "array", required: true, items: { type: "string" } },
           trustMix: { type: "json", required: true },
           topTitle: { type: "string", required: true },
+          independentDomains: { type: "number", required: true },
           dateRange: { type: "array", items: { type: "string" } },
         },
       },
