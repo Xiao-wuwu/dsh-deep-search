@@ -301,6 +301,14 @@ export interface ResearchStateArgs { researchId: string; action: "summary" | "cl
 export function runResearchState(args: ResearchStateArgs, ctx: ToolCtx): Record<string, unknown> {
   const id = args.researchId;
   const invalidAction = !["summary", "close", "reset"].includes(args.action);
+  if (!ctx.store.has(id)) {
+    return {
+      ok: false, researchId: id, action: args.action, roundCount: 0, maxRoundsReached: false,
+      totalNew: 0, totalDuplicates: 0, totalSeen: 0, targetsOk: [], targetsFailed: [], trustMix: {},
+      officialConfirmation: "none", clusters: [], rounds: [],
+      error: { code: "RESEARCH_NOT_FOUND", message: `research not found (closed or expired): ${id}`, hint: "omit researchId to start a new one" },
+    };
+  }
   try {
     if (invalidAction) {
       return { ok: false, researchId: id, action: args.action ?? "", roundCount: 0, maxRoundsReached: false, totalNew: 0, totalDuplicates: 0, totalSeen: 0, targetsOk: [], targetsFailed: [], trustMix: {}, officialConfirmation: "none", clusters: [], rounds: [], error: { code: "INVALID_ACTION", message: `action must be summary|close|reset, got ${String(args.action)}` } };

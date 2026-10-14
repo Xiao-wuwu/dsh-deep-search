@@ -114,6 +114,12 @@ export class ResearchStore {
     return this.mustGet(id);
   }
 
+  /** Non-throwing existence check (TTL sweep first) — for tool-layer error envelopes. */
+  has(id: string): boolean {
+    this.sweep();
+    return this.states.has(id);
+  }
+
   /** Snapshot of seen URLs for the upcoming round (cross-round dedupe input). */
   newRound(id: string, queries?: string[]): { round: number; seen: Set<string>; maxRoundsReached: boolean } {
     const s = this.mustGet(id);
