@@ -3,10 +3,12 @@
  *  this one focused file instead of 10 near-identical modules (plan deviation, noted). */
 import type { EngineDeps } from "../engines/types.ts";
 import type { PlatformHit } from "./parsers.ts";
+import type { BestEffortPlatform } from "./besteffort.ts";
 import {
   parseGithub, parseHackernews, parseReddit, parseStackoverflow, parseWikipedia,
   parseNpm, parseHuggingface, parseModelscope, parseV2ex, parseZhihu,
 } from "./parsers.ts";
+import { bilibili, weibo, xBestEffort } from "./besteffort.ts";
 import { HttpError } from "../http/client.ts";
 import { QuotaError } from "../engines/types.ts";
 
@@ -18,6 +20,8 @@ export interface Platform {
 export interface PlatformConfig {
   enabled: string[];
   proxyByTarget?: Record<string, string>;
+  /** Optional X search channel: endpoint + credential token promote x from best-effort to stable-if-works. */
+  xEndpoint?: string;
 }
 
 const enc = encodeURIComponent;
@@ -141,6 +145,11 @@ const SIMPLE: Record<string, (deps: EngineDeps) => Platform> = {
   github, hackernews, reddit, stackoverflow, wikipedia, npm, huggingface, modelscope, v2ex,
 };
 
+const BESTEFFECT: Record<string, (deps: EngineDeps) => BestEffortPlatform> = { bilibili, weibo };
+function besteffortFactory(id: string, deps: EngineDeps): Platform {
+  return BESTEFFECT[id]!(deps);
+}
+
 export function buildPlatforms(cfg: PlatformConfig, creds: Map<string, string>, deps: EngineDeps): BuildPlatformsResult {
   const active: Platform[] = [];
   const disabled: { id: string; reason: string }[] = [];
@@ -153,6 +162,13 @@ export function buildPlatforms(cfg: PlatformConfig, creds: Map<string, string>, 
     }
     const make = SIMPLE[id];
     if (make) { active.push(make(deps)); continue; }
+    if (id === "bilibili" || id === "weibo") { active.push(besteffortFactory(id, deps)); continue; }
+    if (id === "x") {
+      const token = creds.get("x") ?? creds.get("ROLLI_API_TOKEN");
+      const endpoint = cfg.xEndpoint;
+      active.push(endpoint && token ? xBestEffort(deps, { url: endpoint, token }) : xBestEffort(deps));
+      continue;
+    }
     disabled.push({ id, reason: `unknown platform id: ${id}` });
   }
   return { active, disabled };
