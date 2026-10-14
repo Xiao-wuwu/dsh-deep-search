@@ -7,10 +7,9 @@
   "main": "./lib/index.mjs",
   "types": "./lib/index.d.mts",
   "exports": {
-    "0": ".default=./lib/index.mjs",
     ".": {
-      "types": "./lib/types/index.d.ts",
-      "default": "./lib/index.js"
+      "types": "./lib/index.d.mts",
+      "default": "./lib/index.mjs"
     },
     "./cordis.patch.yml": "./cordis.patch.yml",
     "./package.json": "./package.json"

@@ -114,3 +114,21 @@ test("apply: credentials resolve enables a keyed engine (tavily)", async () => {
 test("ConfigSchema is a schemastery object (host config form derives from it)", () => {
   assert.ok(typeof ConfigSchema === "object" || typeof ConfigSchema === "function");
 });
+
+// Regression (root cause of the live "failed to import": host passes sparse config
+// where array fields are undefined → buildEngines got `cfg.enabled is not iterable`).
+test("apply() tolerates host-shaped sparse / undefined config without throwing", () => {
+  for (const shape of [
+    undefined,
+    {},
+    { enabledEngines: undefined, enabledPlatforms: undefined, searxngInstances: undefined },
+    { concurrency: undefined, maxRounds: undefined, promptInjection: undefined },
+    { enabledEngines: null as unknown as string[], budgetChars: "8000" as unknown as number },
+  ]) {
+    const { ctx, reg } = stubCtx();
+    assert.doesNotThrow(() => apply(ctx, shape as never), `shape=${JSON.stringify(shape)}`);
+    assert.deepEqual(reg.tools.map((t) => t.name).sort(), ["deep_search", "research_state", "verify_claims"],
+      `tools registered for shape=${JSON.stringify(shape)}`);
+  }
+});
+

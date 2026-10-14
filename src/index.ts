@@ -9,7 +9,16 @@
  *  `skills` and `settings` ride scoped `ctx.inject([...])` callbacks and their
  *  absence degrades gracefully instead of hanging the fiber. */
 import z from "@deepseek-ai/schemastery";
-import { credentialRef, isCredentialRefName } from "@deepseek-ai/dsh-credentials";
+
+/** Credential-reference helpers implemented LOCALLY (not imported from
+ *  @deepseek-ai/dsh-credentials): that package is only guaranteed as a cordis
+ *  SERVICE (ctx.inject(['credentials'])), not a resolvable static import at
+ *  plugin load. A top-level import of it crashed activation ("failed to import")
+ *  because the specifier is absent from the host load path. The service's
+ *  resolve() still accepts the reference-name string; an unbranded ref simply
+ *  yields no value and we fall back to process.env — never fatal. */
+const CREDENTIAL_REF_RE = /^[A-Za-z_][A-Za-z0-9_]*$/;
+const isCredentialRefName = (s: string): boolean => CREDENTIAL_REF_RE.test(s);
 
 import { defaultConfig, mergeConfig, type Config } from "./config.ts";
 import { resolveCreds, CREDENTIAL_REFS } from "./credentials.ts";
@@ -79,10 +88,33 @@ interface PluginConfig {
   verbose: boolean;
 }
 
-export function apply(ctx: LooseCtx, config: PluginConfig): void {
+export function apply(ctx: LooseCtx, rawConfig: PluginConfig): void {
   const log = ctx.logger(name);
 
-  // 1. live config (every field volatile → hot edits re-enter apply/dynamic paths)
+  // 1. live config — host may pass undefined for omitted keys (crash found via
+  // dshead headless: "cfg.enabled is not iterable"), so normalize field by field.
+  const def = defaultConfig();
+  const config: PluginConfig = {
+    enabledEngines: Array.isArray(rawConfig?.enabledEngines) ? rawConfig.enabledEngines : def.engines.enabled,
+    enabledPlatforms: Array.isArray(rawConfig?.enabledPlatforms) ? rawConfig.enabledPlatforms : def.platforms.enabled,
+    searxngInstances: Array.isArray(rawConfig?.searxngInstances) ? rawConfig.searxngInstances : [],
+    proxy: typeof rawConfig?.proxy === "string" ? rawConfig.proxy : "",
+    proxyByTarget: rawConfig?.proxyByTarget && typeof rawConfig.proxyByTarget === "object" ? rawConfig.proxyByTarget : {},
+    concurrency: Number.isFinite(rawConfig?.concurrency) ? rawConfig.concurrency : 8,
+    queryTimeoutMs: Number.isFinite(rawConfig?.queryTimeoutMs) ? rawConfig.queryTimeoutMs : 15000,
+    maxRounds: Number.isFinite(rawConfig?.maxRounds) ? rawConfig.maxRounds : 5,
+    budgetChars: Number.isFinite(rawConfig?.budgetChars) ? rawConfig.budgetChars : 9000,
+    rateLimitPerMinute: Number.isFinite(rawConfig?.rateLimitPerMinute) ? rawConfig.rateLimitPerMinute : 30,
+    cooldownMinutes: Number.isFinite(rawConfig?.cooldownMinutes) ? rawConfig.cooldownMinutes : 15,
+    cacheTtlMinutes: Number.isFinite(rawConfig?.cacheTtlMinutes) ? rawConfig.cacheTtlMinutes : 10,
+    lruSize: Number.isFinite(rawConfig?.lruSize) ? rawConfig.lruSize : 500,
+    xEndpoint: typeof rawConfig?.xEndpoint === "string" ? rawConfig.xEndpoint : "",
+    xEndpointCredentialRef: typeof rawConfig?.xEndpointCredentialRef === "string" && rawConfig.xEndpointCredentialRef ? rawConfig.xEndpointCredentialRef : "ROLLI_API_TOKEN",
+    zhihuCredentialRef: typeof rawConfig?.zhihuCredentialRef === "string" && rawConfig.zhihuCredentialRef ? rawConfig.zhihuCredentialRef : "ZHIHU_ACCESS_SECRET",
+    promptInjection: typeof rawConfig?.promptInjection === "boolean" ? rawConfig.promptInjection : true,
+    verbose: typeof rawConfig?.verbose === "boolean" ? rawConfig.verbose : false,
+  };
+
   const cfg: Config = mergeConfig({
     engines: {
       enabled: config.enabledEngines,
@@ -164,13 +196,14 @@ export function apply(ctx: LooseCtx, config: PluginConfig): void {
     void (async () => {
       for (const ref of Object.values(refNames())) {
         if (!isCredentialRefName(ref)) continue;
+        if (credMap.has(ref)) continue; // env already provided it
         try {
-          const resolved = await face.resolve(credentialRef(ref));
+          const resolved = await face.resolve(ref);
           const value = resolved?.value;
           if (!closed && typeof value === "string" && value.trim() !== "") {
             credMap.set(ref, value.trim());
           }
-        } catch { /* one missing credential never disables the rest */ }
+        } catch { /* one missing/unbrandable credential never disables the rest */ }
       }
       if (!closed) rebuildChannels();
     })();

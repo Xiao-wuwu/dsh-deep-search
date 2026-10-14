@@ -67,9 +67,11 @@ function isPlainObject(v: unknown): v is Record<string, unknown> {
 }
 
 function deepMerge<T>(base: T, patch: unknown): T {
+  // an explicitly-undefined patch value must NOT erase a default (host may pass
+  // config keys as undefined when the profile omits them)
+  if (patch === undefined) return base;
   if (!isPlainObject(patch) || !isPlainObject(base)) {
-    // arrays & scalars: patch wins wholesale when provided
-    return (patch === undefined ? base : (structuredCloneSafe(patch) as T));
+    return (patch === undefined ? base : structuredCloneSafe(patch)) as T;
   }
   const out: Record<string, unknown> = {};
   const keys = new Set([...Object.keys(base), ...Object.keys(patch)]);
