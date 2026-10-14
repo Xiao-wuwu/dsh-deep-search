@@ -8,3 +8,5 @@ tmp/
 
 *.tgz
 package.json.bak
+
+.e2e-installed/
