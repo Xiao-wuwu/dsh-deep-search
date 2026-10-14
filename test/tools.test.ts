@@ -60,7 +60,8 @@ test("deep_search: results+clusters+stats present; schema fields all declared", 
   assert.equal(env.ok, true);
   assert.equal(env.results.length, 2);
   assert.ok(env.results[0]!.trustRank === "A");
-  assert.ok(env.clusters.length >= 1);
+  // envelope ships only multi-source clusters; singletons are omitted (full matrix in store)
+  assert.ok(env.clusters.every((c: { size: number }) => c.size >= 2));
   assert.ok(env.stats.elapsedMs >= 0);
   // contract: no undeclared key leaks into the envelope (zhihu v1.4.0 guard)
   for (const k of Object.keys(env)) {

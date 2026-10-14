@@ -15,7 +15,7 @@ test("defaultConfig carries spec §7 shape", () => {
   assert.ok(c.platforms.enabled.includes("github"));
   assert.equal(c.limits.concurrency, 8);
   assert.equal(c.limits.maxRounds, 5);
-  assert.equal(c.limits.budgetChars, 9000);
+  assert.equal(c.limits.budgetChars, 6000);
   assert.equal(c.cooldown.enabled, true);
   assert.equal(c.promptInjection, true);
 });

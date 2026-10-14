@@ -47,7 +47,7 @@ export const ConfigSchema = z.object({
   concurrency: z.number().default(8).volatile(),
   queryTimeoutMs: z.number().default(15000).volatile(),
   maxRounds: z.number().default(5).volatile(),
-  budgetChars: z.number().default(9000).volatile(),
+  budgetChars: z.number().default(6000).volatile(),
   rateLimitPerMinute: z.number().default(30).volatile(),
   cooldownMinutes: z.number().default(15).volatile(),
   cacheTtlMinutes: z.number().default(10).volatile(),

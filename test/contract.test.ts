@@ -96,3 +96,12 @@ test("verify_claims envelope passes HOST validator", async () => {
   assertHostValid("verify_claims", verifyOutput, v);
   assertHostValid("verify_claims(missing research)", verifyOutput, runVerifyTool({ researchId: "rs-nope", claims: [{ text: "x" }] }, ctx));
 });
+
+test('deep_search envelope omits singleton clusters but research_state keeps the full matrix', async () => {
+  const ctx = mkCtx();
+  const env = await runDeepSearch({ question: 'q', queries: ['Qwen4-Max 发布'] }, ctx);
+  const sizes = (env.clusters as { size: number }[]).map((c) => c.size);
+  assert.ok(sizes.every((s) => s >= 2), 'envelope must ship only multi-source clusters');
+  const st = runResearchState({ researchId: String(env.researchId), action: 'summary' }, ctx);
+  assert.ok((st.clusters as unknown[]).length >= sizes.length, 'full matrix survives in the store');
+});

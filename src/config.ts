@@ -52,7 +52,7 @@ export function defaultConfig(): Config {
     platforms: { enabled: [...DEFAULT_PLATFORM_IDS], custom: [], xEndpoint: "" },
     limits: {
       concurrency: 8, perTargetConcurrency: 2, queryTimeoutMs: 15000,
-      maxQueriesPerCall: 24, maxRounds: 5, budgetChars: 9000, rateLimitPerMinute: 30,
+      maxQueriesPerCall: 24, maxRounds: 5, budgetChars: 6000, rateLimitPerMinute: 30,
     },
     cooldown: { enabled: true, minutes: 15 },
     cache: { lruSize: 500, ttlMinutes: 10, persist: false },

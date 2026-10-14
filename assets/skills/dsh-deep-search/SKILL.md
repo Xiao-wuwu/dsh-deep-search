@@ -41,6 +41,10 @@ description: "Deep-research protocol for anything time-sensitive or contested: m
 2. 一轮下来没有新关键词可加（查询计划收敛）
 3. 轮次用尽（maxRoundsReached = true）
 
+⚠ 终止条件 2 的陷阱（真实教训 2026-10-15）：用户问题里常藏着**子事件**，第一轮没拆就会漏。例：问"Qwen4 发布时间"，子事件至少包括——①官宣阵容（四款）②"Coming Soon" ③官推"大小都要"暗示 Max+27B 同发 ④架构预览版已开源。第③点第一轮漏查、被用户纠正才查到（news.qq.com 2026-10-13）。**拆法：把问题里的每个实体×每个动作×时间线阶段各列一组查询，不要只查"大问题"**。
+⚠ **新实体必查**：每轮 `extracted` 里出现的新实体（新版本号/新账号/新引语，如"大小都要"这种 quotes 字段内容），若与问题相关，下一轮必须为它单独出查询——它是线索不是噪声。
+⚠ 某渠道 failed/unavailable 时，先换路径再下结论：X 动态常被新闻站转载，`site:x.com` 走 bing、或"官推+事件词"直接搜网页索引，往往比直连 X 更可达。**禁止**把"渠道失败"直接写成"查不到"。
+
 ## 查询规划清单（第 1 轮至少覆盖 5 类）
 
 | 类别 | 例子 |
@@ -49,6 +53,7 @@ description: "Deep-research protocol for anything time-sensitive or contested: m
 | 英文同义 | `"Qwen4 release" / "Qwen4 open weights"` |
 | 同义词展开 | 发布/开源/上线/放出权重/模型卡 · release/launch/open-source/weights/model card |
 | 官方账号定向 | `{q:"from:Alibaba_Qwen Qwen4", target:"x"}`；`{q:"QwenLM", target:"github"}` |
+| **子事件拆解** | 问题含多实体时逐对组合：`"Qwen4 Max 27B 同步发布"` / `"same day" / "together"`；暗示类词：官推/预告/暗示/teaser/hint |
 | 平台定向 | 模型发布类 → huggingface + modelscope + github；口碑 → reddit + zhihu + v2ex；突发 → bing + hackernews + weibo + x；教程报错 → stackoverflow |
 | 精确短语 | `{q:"\"Qwen4-Max\" released"}` |
 | 时间范围 | timeRange: "week" / "month"（问"最近/上周"时收紧） |

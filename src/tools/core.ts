@@ -257,6 +257,10 @@ export async function runDeepSearch(args: DeepSearchArgs, ctx: ToolCtx): Promise
     const trustMix: Record<string, number> = {};
     for (const h of fresh) trustMix[h.trustRank] = (trustMix[h.trustRank] ?? 0) + 1;
 
+    // envelope slimming (token audit 2026-10-15): singleton clusters carry zero
+    // cross-validation signal yet dominated the payload (~45%); ship only real
+    // multi-source clusters — the FULL matrix stays in the store for research_state.
+    const clusterRows = clusters.map(clusterRow);
     ctx.store.recordRound(researchId, {
       queries: specs.map((s) => s.q),
       newCount: fresh.length,
@@ -265,7 +269,7 @@ export async function runDeepSearch(args: DeepSearchArgs, ctx: ToolCtx): Promise
       targets: { ok: okTargets, failed: gaps.map((g) => g.target) },
       trustMix,
       officialConfirmation: official.status,
-      clusters: clusters.map(clusterRow),
+      clusters: clusterRows,
       results: fresh,
     });
 
@@ -276,7 +280,7 @@ export async function runDeepSearch(args: DeepSearchArgs, ctx: ToolCtx): Promise
       newCount: fresh.length,
       skippedDuplicates: removed,
       results: kept,
-      clusters: clusters.map(clusterRow),
+      clusters: clusterRows.filter((c) => c.size >= 2),
       gaps,
       officialConfirmation: official,
       hint,
