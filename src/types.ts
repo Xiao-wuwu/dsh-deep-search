@@ -32,6 +32,15 @@ export function normalizeTrust(raw: unknown): TrustRank {
 /** Rule-derived signal id (content_farm / clickbait / satire / single_source / date_conflict / stale / low_trust_only …). */
 export type Flag = string;
 
+/** Rule-extracted signals found in a result's title/snippet (module-3 assist). */
+export interface Extracted {
+  accounts: string[];
+  dates: string[];
+  versions: string[];
+  quotes: string[];
+  actionWords: string[];
+}
+
 /** A projected search result after trust grading + flagging. */
 export interface SourceResult {
   title: string;
@@ -52,6 +61,8 @@ export interface SourceResult {
   /** Upstream engagement signal (votes/comments); omitted, never zero-filled. */
   votes?: number;
   comments?: number;
+  /** Rule-extracted signals; absent until the extract stage. */
+  extracted?: Extracted;
 }
 
 /** A retrieval channel that failed / was degraded / was unavailable. Surfaced, never swallowed. */

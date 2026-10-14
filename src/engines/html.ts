@@ -12,9 +12,12 @@ export function normalizeUrl(raw: string): string {
     if (u.hostname === "invalid.local") return "";
     u.hash = "";
     for (const k of [...u.searchParams.keys()]) {
-      if (/^(utm_|sa|source|fbclid|gclid|mc_[a-z]+)$/i.test(k)) u.searchParams.delete(k);
+      if (/^(utm|utm_.+|sa|source|fbclid|gclid|mc_[a-z]+)$/i.test(k)) u.searchParams.delete(k);
     }
     u.hostname = u.hostname.toLowerCase();
+    if (u.pathname.length > 1 && u.pathname.endsWith("/")) {
+      u.pathname = u.pathname.replace(/\/+$/, "");
+    }
     let out = u.toString();
     if (out.endsWith("/") && u.search === "" && u.hash === "") out = out.slice(0, -1);
     return out;
