@@ -23,7 +23,7 @@
     { "id": "npm", "kind": "platform", "tier": "free", "timeRange": false, "maxResults": 10, "endpointTemplate": "https://registry.npmjs.org/-/v1/search?text={query}&size={maxResults}" },
     { "id": "huggingface", "kind": "platform", "tier": "free", "timeRange": true, "maxResults": 15, "endpointTemplate": "https://huggingface.co/api/models?search={query}&sort=lastModified&direction=-1&limit={maxResults}" },
     { "id": "modelscope", "kind": "platform", "tier": "free", "timeRange": true, "maxResults": 15, "endpointTemplate": "https://www.modelscope.cn/api/v1/models?Query={query}&SortBy=GmtModified&PageSize={maxResults}" },
-    { "id": "zhihu", "kind": "platform", "tier": "free", "timeRange": false, "maxResults": 15, "endpointTemplate": "https://developer.zhihu.com (Open Platform search API)", "credentialRef": "ZHIHU_ACCESS_SECRET" },
+    { "id": "zhihu", "kind": "platform", "tier": "keyed", "timeRange": false, "maxResults": 15, "endpointTemplate": "https://developer.zhihu.com (Open Platform search API)", "credentialRef": "ZHIHU_ACCESS_SECRET", "note": "spec §4.2: stable tier only once ZHIHU_ACCESS_SECRET resolves; missing secret => disabled with reason, HTML fallback stays best-effort." },
 
     { "id": "bilibili", "kind": "platform", "tier": "verify", "timeRange": false, "maxResults": 15, "endpointTemplate": "https://api.bilibili.com/x/web-interface/search/type?keyword={query}&search_type=video" },
     { "id": "weibo", "kind": "platform", "tier": "verify", "timeRange": false, "maxResults": 15, "endpointTemplate": "https://s.weibo.com/weibo?q={query}" },
