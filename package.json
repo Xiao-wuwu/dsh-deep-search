@@ -1,6 +1,6 @@
 {
   "name": "dsh-deep-search",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Multi-round iterative search with source grading (A/B/C/D) and misinformation heuristics for DeepSeek Harness — 6 free engines + 14 platform-targeted retrievers, research state, verify_claims, injected SKILL protocol.",
   "license": "MIT",
   "type": "module",
@@ -88,5 +88,22 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "build": "tsdown",
     "clean": "node scripts/clean-lib.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Xiao-wuwu/dsh-deep-search.git",
+    "directory": "."
+  },
+  "author": {
+    "name": "Xiao-wuwu",
+    "email": "1655227548@qq.com"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/Xiao-wuwu"
+  },
+  "homepage": "https://github.com/Xiao-wuwu/dsh-deep-search#readme",
+  "bugs": {
+    "url": "https://github.com/Xiao-wuwu/dsh-deep-search/issues"
   }
 }

@@ -73,3 +73,10 @@ MIT
 ## ⭐ Found this useful?
 
 Every feature here came from getting burned by a lazy one-shot answer. If it makes your agent citable and traceable, **a star is the cheapest way to say so** — and the best way to help the next person find it. Issues and PRs welcome.
+
+---
+
+## 💖 Support
+
+If dsh-deep-search makes your agent's answers citable and traceable, consider [sponsoring on GitHub](https://github.com/sponsors/Xiao-wuwu) — a coffee goes a long way for an indie maintainer. PRs and issues welcome.
+
