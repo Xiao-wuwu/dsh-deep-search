@@ -126,7 +126,7 @@ function classifyError(err: unknown): { status: Gap["status"]; reason: string; q
 export interface DeepSearchArgs {
   question?: string;
   mode?: string;
-  queries?: unknown;
+  queries?: unknown[];
   researchId?: string;
   maxResultsPerQuery?: number;
   budgetChars?: number;
