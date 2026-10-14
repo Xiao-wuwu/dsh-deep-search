@@ -2,6 +2,18 @@
  *  plan's pseudocode; rounds = history; gaps/trust accumulation). In-memory only —
  *  TTL'd, capped, never crosses process (spec §6.4). */
 import { randomBytes } from "node:crypto";
+import type { SourceResult } from "../types.ts";
+
+/** Stored cluster row (cross-validation matrix input; see tools/core mergeClusterRows). */
+export interface ClusterRow {
+  clusterId: string;
+  size: number;
+  memberUrls: string[];
+  trustMix: Record<string, number>;
+  topTitle: string;
+  independentDomains?: number;
+  dateRange?: [string, string];
+}
 
 export interface RoundRecord {
   round: number;
@@ -13,6 +25,9 @@ export interface RoundRecord {
   trustMix: Record<string, number>;
   officialConfirmation: "found" | "none";
   at: number;
+  /** Global corpus for verify_claims + matrix for research_state. */
+  clusters?: ClusterRow[];
+  results?: SourceResult[];
 }
 
 export interface ResearchState {
@@ -100,7 +115,7 @@ export class ResearchStore {
   }
 
   /** Snapshot of seen URLs for the upcoming round (cross-round dedupe input). */
-  newRound(id: string, queries: string[]): { round: number; seen: Set<string>; maxRoundsReached: boolean } {
+  newRound(id: string, queries?: string[]): { round: number; seen: Set<string>; maxRoundsReached: boolean } {
     const s = this.mustGet(id);
     void queries;
     return {
