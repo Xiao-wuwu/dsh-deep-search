@@ -1,6 +1,6 @@
 {
   "name": "dsh-deep-search",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Multi-round iterative search with source grading (A/B/C/D) and misinformation heuristics for DeepSeek Harness — 6 free engines + 14 platform-targeted retrievers, research state, verify_claims, injected SKILL protocol.",
   "license": "MIT",
   "type": "module",
@@ -10,6 +10,10 @@
     ".": {
       "types": "./lib/index.d.mts",
       "default": "./lib/index.mjs"
+    },
+    "./client": {
+      "types": "./lib/client.d.ts",
+      "default": "./lib/client.js"
     },
     "./cordis.patch.yml": "./cordis.patch.yml",
     "./package.json": "./package.json"
@@ -29,6 +33,10 @@
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.4",
+    "@deepseek-ai/dsh-client-store": ">=0.2.0-rc.2 <0.2.1-0",
+    "@deepseek-ai/dsh-client-ui-primitives": ">=0.2.0-rc.2 <0.2.1-0",
+    "@deepseek-ai/dsh-client-ui-settings": ">=0.2.0-rc.2 <0.2.1-0",
+    "@deepseek-ai/dsh-client-ui-slots": ">=0.2.0-rc.2 <0.2.1-0",
     "@deepseek-ai/dsh-credentials": ">=0.2.0-rc.2 <0.2.1-0",
     "@deepseek-ai/dsh-settings": ">=0.2.0-rc.2 <0.2.1-0",
     "@deepseek-ai/dsh-tools": ">=0.2.0-rc.2 <0.2.1-0",
@@ -36,6 +44,18 @@
   },
   "peerDependenciesMeta": {
     "@deepseek-ai/cordis": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-client-store": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-client-ui-primitives": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-client-ui-settings": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-client-ui-slots": {
       "optional": true
     },
     "@deepseek-ai/dsh-credentials": {
@@ -58,6 +78,12 @@
   "devDependencies": {
     "@deepseek-ai/cordis": "^4.0.4",
     "@deepseek-ai/cosmokit": "~1.8.5",
+    "@deepseek-ai/dsh-client-store": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-plugin-manager": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-primitives": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-renderer": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-settings": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-slots": "0.2.0-rc.2",
     "@deepseek-ai/dsh-credentials": "^0.2.0-rc.2",
     "@deepseek-ai/dsh-tools": "^0.2.0-rc.2",
     "@deepseek-ai/schemastery": "^3.18.4",
@@ -71,6 +97,15 @@
     },
     "bundle": {
       "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-primitives",
+        "@deepseek-ai/dsh-client-ui-renderer",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-plugin-manager"
+      ]
     }
   },
   "keywords": [
@@ -86,7 +121,7 @@
   "scripts": {
     "test": "node --test --experimental-transform-types test/*.test.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "build": "tsdown",
+    "build": "tsdown && node ../../../Tools/NInfer/scripts/postprocess-client.cjs lib/client.js lib/client.js dsh-deep-search",
     "clean": "node scripts/clean-lib.mjs"
   },
   "repository": {

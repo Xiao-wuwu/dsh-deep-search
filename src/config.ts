@@ -31,6 +31,9 @@ export interface Config {
   cache: { lruSize: number; ttlMinutes: number; persist: boolean };
   trust: { extraOfficialDomains: string[]; extraOfficialAccounts: string[]; extraFarmPatterns: string[] };
   promptInjection: boolean;
+  /** [2026-10-15 本地补丁] 搜索默认启用：true 时**任何需要联网搜索的问题**都走 deep_search
+   *  （不再限于"时效/争议事实"）。可在插件设置页关闭。 */
+  alwaysSearch: boolean;
   researchTtlMinutes: number;
 }
 
@@ -58,6 +61,7 @@ export function defaultConfig(): Config {
     cache: { lruSize: 500, ttlMinutes: 10, persist: false },
     trust: { extraOfficialDomains: [], extraOfficialAccounts: [], extraFarmPatterns: [] },
     promptInjection: true,
+    alwaysSearch: true,
     researchTtlMinutes: 120,
   };
 }

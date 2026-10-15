@@ -9,6 +9,10 @@
  *  `skills` and `settings` ride scoped `ctx.inject([...])` callbacks and their
  *  absence degrades gracefully instead of hanging the fiber. */
 import z from "@deepseek-ai/schemastery";
+/** [2026-10-15 本地补丁] 显式导出 Schema 类型：pnpm 布局下 `@deepseek-ai/cosmokit`
+ *  存在多份副本，`ConfigSchema` 的推断类型会引用 .pnpm 内部路径而报 TS2742
+ *  （"cannot be named without a reference to ..."）。显式标注消除该推断即可。 */
+import type Schema from "@deepseek-ai/schemastery";
 
 /** Credential-reference helpers implemented LOCALLY (not imported from
  *  @deepseek-ai/dsh-credentials): that package is only guaranteed as a cordis
@@ -38,7 +42,7 @@ import { fileURLToPath } from "node:url";
 export const name = "dsh-deep-search";
 export const inject = ["tools", "systemPrompt"] as const;
 
-export const ConfigSchema = z.object({
+export const ConfigSchema: Schema<Record<string, unknown>> = z.object({
   enabledEngines: z.array(z.string()).default(defaultConfig().engines.enabled).volatile(),
   enabledPlatforms: z.array(z.string()).default(defaultConfig().platforms.enabled).volatile(),
   searxngInstances: z.array(z.string()).default([]).volatile(),
@@ -56,6 +60,9 @@ export const ConfigSchema = z.object({
   xEndpointCredentialRef: z.string().role("credential-ref").default("ROLLI_API_TOKEN").volatile(),
   zhihuCredentialRef: z.string().role("credential-ref").default("ZHIHU_ACCESS_SECRET").volatile(),
   promptInjection: z.boolean().default(true).volatile(),
+  /** [2026-10-15 本地补丁] 搜索默认启用：true 时**任何需要联网搜索的问题**都走 deep_search
+   *  （不再限于"时效/争议事实"）。`.volatile()` 是设置页能写该字段的前提。 */
+  alwaysSearch: z.boolean().default(true).volatile(),
   verbose: z.boolean().default(false).volatile(),
 });
 
@@ -85,6 +92,8 @@ interface PluginConfig {
   xEndpointCredentialRef: string;
   zhihuCredentialRef: string;
   promptInjection: boolean;
+  /** [2026-10-15 本地补丁] 搜索默认启用开关（见 ConfigSchema.alwaysSearch）。 */
+  alwaysSearch: boolean;
   verbose: boolean;
 }
 
@@ -112,6 +121,7 @@ export function apply(ctx: LooseCtx, rawConfig: PluginConfig): void {
     xEndpointCredentialRef: typeof rawConfig?.xEndpointCredentialRef === "string" && rawConfig.xEndpointCredentialRef ? rawConfig.xEndpointCredentialRef : "ROLLI_API_TOKEN",
     zhihuCredentialRef: typeof rawConfig?.zhihuCredentialRef === "string" && rawConfig.zhihuCredentialRef ? rawConfig.zhihuCredentialRef : "ZHIHU_ACCESS_SECRET",
     promptInjection: typeof rawConfig?.promptInjection === "boolean" ? rawConfig.promptInjection : true,
+    alwaysSearch: typeof rawConfig?.alwaysSearch === "boolean" ? rawConfig.alwaysSearch : true,
     verbose: typeof rawConfig?.verbose === "boolean" ? rawConfig.verbose : false,
   };
 
@@ -131,6 +141,7 @@ export function apply(ctx: LooseCtx, rawConfig: PluginConfig): void {
     cache: { lruSize: config.lruSize, ttlMinutes: config.cacheTtlMinutes, persist: false },
     trust: defaultConfig().trust,
     promptInjection: config.promptInjection,
+    alwaysSearch: config.alwaysSearch,
     researchTtlMinutes: 120,
   });
 
@@ -224,7 +235,7 @@ export function apply(ctx: LooseCtx, rawConfig: PluginConfig): void {
     const section = ctx.systemPrompt.section({
       name: "tool:dsh-deep-search",
       order: 112,
-      text: () => buildPromptText(skill.isAvailable()),
+      text: () => buildPromptText(skill.isAvailable(), cfg.alwaysSearch),
     });
     ctx.effect(() => () => {
       try { typeof section === "function" ? section() : section?.dispose?.(); } catch { /* host already dropped */ }
