@@ -1,5 +1,93 @@
 # Changelog
 
+All notable changes to this project. Format loosely follows Keep a Changelog;
+versions correspond to real git commits (no retro-fitted entries).
+
+## 0.1.8 — 2026-10-15
+
+### Added
+- **Client half (`./client` export)**: settings-page card so the `alwaysSearch` toggle appears in
+  **Settings → Plugins → dsh-deep-search → configuration** in the DSH Web GUI.
+  - Exports `name` / `inject` / `apply` / `SettingsCard` (verified against the working
+    `@deepseek-ai/dsh-client-ui-plugin-manager` contract: owner passes `{ view }`, not `form`).
+  - Built to `lib/client.js` + `lib/client.d.ts`; optional peer deps on
+    `dsh-client-store` / `dsh-client-ui-primitives` / `-settings` / `-slots`.
+- **English-first README**: English is now the primary section, Chinese follows under `## 中文说明`.
+
+### Changed
+- Package renamed to **`@xiaowuwu/dsh-deep-search`** for npm publishing
+  (npm rejects `dsh-deep-search` as *too similar to existing package `dsh-deepsearch`*).
+  Plugin id / tool names are unchanged (`dsh-deep-search`, `deep_search`).
+
+## 0.1.7 — 2026-10-15
+
+### Changed
+- README reordered to English-first (superseded by the same change in 0.1.8).
+
+## 0.1.6 — 2026-10-15
+
+### Added
+- npm publish metadata: `repository`, `author`, `homepage`, `bugs`.
+- **GitHub Sponsors funding button** (`.github/FUNDING.yml`) + donate sections in both READMEs.
+
+## 0.1.5 — 2026-10-15
+
+### Changed
+- **Payload slimming**: the `deep_search` envelope now ships only **multi-source clusters**
+  (size ≥ 2). Singleton clusters carried no cross-validation signal yet accounted for ~45 % of
+  the response; the full matrix is still kept in the store and returned by `research_state`.
+- Default `budgetChars` lowered **9000 → 6000**.
+
+### Added (SKILL hardening, all from a real miss)
+- Mandatory **sub-event decomposition** (entity × action × timeline), driven by a live failure where
+  the "Qwen4-Max and 27B releasing together" tease was only found after user correction.
+- **Must-query-new-entities** rule: entities surfaced in `extracted` (versions/accounts/quotes) are
+  leads, not noise — query them next round.
+- **Never-blame-the-channel** rule: a failed channel (X/Weibo/…) must not be reported as
+  "no information exists"; retry through a general engine with `site:` first.
+
+## 0.1.4 — 2026-10-15
+
+### Fixed
+- **Trust grading**: UGC pages living on official domains no longer inherit grade A.
+  `baike.baidu.com` was graded A in a live audit; added `officialDenyHosts`
+  (baike / zhuanlan.zhihu / jingyan / wenku / tieba) + regression test.
+
+## 0.1.3 — 2026-10-15
+
+### Fixed
+- **Host schema rejection**: `clusters[].independentDomains` was projected into the envelope but
+  not declared in the output schema, so the host rejected every `deep_search` call
+  (`additionalProperties: false`) after restart.
+
+### Added
+- **HOST-validator contract test** (`valueSchemaSpecToJsonSchema` + `validateJsonSchemaValue`)
+  that feeds real envelopes through the host's own validator — this is the guard that would have
+  caught the bug above and that a field-set comparison could not.
+
+## 0.1.2 — 2026-10-15
+
+### Fixed
+- **Entry crash on sparse host config** (root cause of "failed to import"):
+  omitted array fields arrived as `undefined` and `mergeConfig` overwrote defaults, so
+  `buildEngines` threw `TypeError: cfg.enabled is not iterable` at construction time.
+  `apply()` now normalises every field defensively; regression test added.
+- `exports["."]` pointed at non-existent `./lib/index.js`; now `./lib/index.mjs`.
+
+### Added
+- Cold-process self-check (`scripts/selfcheck.mjs`) against the built artifact.
+
+## 0.1.1 — 2026-10-15
+
+### Fixed
+- **Bing engine rewritten to the RSS endpoint** (`&format=rss`, anonymous, stable) instead of
+  scraping HTML — learned by reading the working `dsh-web-search-pro` source.
+  Real-network smoke: 8 hits / 773 ms (was 0 / flaky).
+- **Hugging Face via `hf-mirror.com` first**, `huggingface.co` fallback — direct HF times out on
+  CN networks. Real-network smoke: 5 hits / 1.1 s (was timeout / 0 hits).
+- Smoke-driven repairs: undici manual 3xx follow + gzip/br decoding, ModelScope verified as
+  `PUT /api/v1/models`, per-query hard deadline, no retry on timeout, owner-verified A grading.
+
 ## 0.1.0 — 2026-10-14
 
 Initial release.

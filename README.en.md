@@ -3,8 +3,8 @@
 > **Stop letting your DSH agent conclude from a single search.**
 > Multi-round iterative deep research · 14 platform-targeted retrievers · A/B/C/D source grading · cross-validation · misinformation heuristics.
 
-[![npm version](https://img.shields.io/npm/v/dsh-deep-search)](https://www.npmjs.com/package/dsh-deep-search)
-[![license](https://img.shields.io/npm/l/dsh-deep-search)](./LICENSE)
+[![npm version](https://img.shields.io/npm/v/@xiaowuwu/dsh-deep-search)](https://www.npmjs.com/package/@xiaowuwu/dsh-deep-search)
+[![license](https://img.shields.io/npm/l/@xiaowuwu/dsh-deep-search)](./LICENSE)
 
 A one-shot `web_search` answering "has model X shipped?" — with an aggregator's clickbait headline — is how hallucinated facts get into your context.
 

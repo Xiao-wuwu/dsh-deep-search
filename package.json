@@ -1,6 +1,6 @@
 {
-  "name": "dsh-deep-search",
-  "version": "0.1.8",
+  "name": "@xiaowuwu/dsh-deep-search",
+  "version": "0.1.9",
   "description": "Multi-round iterative search with source grading (A/B/C/D) and misinformation heuristics for DeepSeek Harness — 6 free engines + 14 platform-targeted retrievers, research state, verify_claims, injected SKILL protocol.",
   "license": "MIT",
   "type": "module",
