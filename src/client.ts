@@ -32,8 +32,10 @@ import type { SettingsFieldSpec } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { } from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type { } from '@deepseek-ai/dsh-client-ui-settings/client'
 
-/** bundle 包名 —— `plugins.bundle.config` 的 key 必须与之一致。 */
-const BUNDLE_PACKAGE = 'dsh-deep-search'
+/** bundle 包名 —— `plugins.bundle.config` 的 key 必须与之一致。
+ *  [2026-10-17 修复] 0.1.9 起包名改为 scoped；设置页按 pkg.name 找卡片，
+ *  旧值 'dsh-deep-search' 导致卡片不渲染（开关在 UI 消失）。 */
+const BUNDLE_PACKAGE = '@xiaowuwu/dsh-deep-search'
 
 /** 本 bundle 在 profile patch 里声明的 row id —— 也是它的 settings 命名空间。 */
 const SETTINGS_NAMESPACE = 'deep-search'

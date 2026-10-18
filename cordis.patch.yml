@@ -10,4 +10,4 @@
 # 引用缺失 = 对应引擎/平台自动禁用，并在 doctor 中说明。
 - insert:
     - id: deep-search
-      name: dsh-deep-search
+      name: "@xiaowuwu/dsh-deep-search"

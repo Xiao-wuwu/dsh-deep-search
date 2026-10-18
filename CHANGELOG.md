@@ -3,6 +3,34 @@
 All notable changes to this project. Format loosely follows Keep a Changelog;
 versions correspond to real git commits (no retro-fitted entries).
 
+## 0.1.11 — 2026-10-17
+
+### Fixed
+- **Bundle patch row name**: `cordis.patch.yml` now inserts the row as
+  `name: "@xiaowuwu/dsh-deep-search"` (was the stale unscoped `dsh-deep-search`). The loader
+  resolves a row's `name` from the profile's `node_modules`; after the 0.1.9 scoped rename the
+  alias directory no longer exists, so the row stayed `fiberPhase: null` (enabled but never
+  mounted, no `deep_search` tool at runtime).
+
+## 0.1.10 — 2026-10-17
+
+### Fixed
+- **Host 0.2.1-rc.2 compatibility**: widened every `@deepseek-ai/*` peer range from
+  `>=0.2.0-rc.2 <0.2.1-0` to `>=0.2.0-rc.2 <0.3.0` so the bundle mounts on 0.2.1.x hosts
+  (0.2.1-rc.2 previously left every row unmounted: no `deep_search` tool at runtime).
+- **Client bundle id**: `build` script now wraps `lib/client.js` with the scoped package id
+  `@xiaowuwu/dsh-deep-search` (was the unscoped `dsh-deep-search`), matching the
+  `plugins.bundle.config` slot key the plugin-manager dispatches (`entryKey = pkg.name`).
+- **Settings card key**: `BUNDLE_PACKAGE` in `src/client.ts` updated to the scoped name so the
+  `alwaysSearch` toggle renders on the bundle page.
+
+## 0.1.9 — 2026-10-16
+
+### Changed
+- Renamed to scoped package `@xiaowuwu/dsh-deep-search` (npm rejected the unscoped name as too
+  similar to `dsh-deepsearch`); README badges and install snippets updated.
+- Full CHANGELOG backfill for 0.1.1–0.1.9 from real commits.
+
 ## 0.1.8 — 2026-10-15
 
 ### Added

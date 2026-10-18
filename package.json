@@ -1,6 +1,6 @@
 {
   "name": "@xiaowuwu/dsh-deep-search",
-  "version": "0.1.9",
+  "version": "0.1.11",
   "description": "Multi-round iterative search with source grading (A/B/C/D) and misinformation heuristics for DeepSeek Harness — 6 free engines + 14 platform-targeted retrievers, research state, verify_claims, injected SKILL protocol.",
   "license": "MIT",
   "type": "module",
@@ -33,13 +33,13 @@
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.4",
-    "@deepseek-ai/dsh-client-store": ">=0.2.0-rc.2 <0.2.1-0",
-    "@deepseek-ai/dsh-client-ui-primitives": ">=0.2.0-rc.2 <0.2.1-0",
-    "@deepseek-ai/dsh-client-ui-settings": ">=0.2.0-rc.2 <0.2.1-0",
-    "@deepseek-ai/dsh-client-ui-slots": ">=0.2.0-rc.2 <0.2.1-0",
-    "@deepseek-ai/dsh-credentials": ">=0.2.0-rc.2 <0.2.1-0",
-    "@deepseek-ai/dsh-settings": ">=0.2.0-rc.2 <0.2.1-0",
-    "@deepseek-ai/dsh-tools": ">=0.2.0-rc.2 <0.2.1-0",
+    "@deepseek-ai/dsh-client-store": ">=0.2.0-rc.2 <0.3.0",
+    "@deepseek-ai/dsh-client-ui-primitives": ">=0.2.0-rc.2 <0.3.0",
+    "@deepseek-ai/dsh-client-ui-settings": ">=0.2.0-rc.2 <0.3.0",
+    "@deepseek-ai/dsh-client-ui-slots": ">=0.2.0-rc.2 <0.3.0",
+    "@deepseek-ai/dsh-credentials": ">=0.2.0-rc.2 <0.3.0",
+    "@deepseek-ai/dsh-settings": ">=0.2.0-rc.2 <0.3.0",
+    "@deepseek-ai/dsh-tools": ">=0.2.0-rc.2 <0.3.0",
     "@deepseek-ai/schemastery": "^3.18.2"
   },
   "peerDependenciesMeta": {
@@ -121,7 +121,7 @@
   "scripts": {
     "test": "node --test --experimental-transform-types test/*.test.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "build": "tsdown && node ../../../Tools/NInfer/scripts/postprocess-client.cjs lib/client.js lib/client.js dsh-deep-search",
+    "build": "tsdown && node ../../../Tools/NInfer/scripts/postprocess-client.cjs lib/client.js lib/client.js @xiaowuwu/dsh-deep-search",
     "clean": "node scripts/clean-lib.mjs"
   },
   "repository": {
